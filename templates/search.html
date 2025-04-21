@@ -1,0 +1,208 @@
+{% extends "navbar.html" %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Search</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
+        .container {
+            width: 50%;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .search-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .dropdown-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        label {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        select, input, button {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        select {
+            cursor: pointer;
+            width: 80px;
+            text-align: center;
+        }
+        .form-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        input {
+            flex: 1;
+            max-width: 300px;
+        }
+        button {
+            background-color: #829397;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #353d37;
+        }
+        .result-container {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        .image-container {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        img {
+            width: 250px;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            padding: 5px;
+        }
+        p {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Search Image or Text</h2>
+
+        <!-- Shared Dropdown -->
+        <div class="dropdown-container">
+            <label for="numImages">Number of Results:</label>
+            <select id="numImages">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+        </div>
+
+        <div class="search-box">
+            <!-- Image Search -->
+            <form id="imageSearchForm" enctype="multipart/form-data" class="form-group">
+                <input type="file" id="imageInput" name="image" accept="image/*">
+                <button type="submit">Search by Image</button>
+            </form>
+
+            <!-- Text Search -->
+            <form id="textSearchForm" class="form-group">
+                <input type="text" id="textInput" name="text" placeholder="Enter text">
+                <button type="submit">Search by Text</button>
+            </form>
+        </div>
+
+        <div class="result-container" id="results">
+            {% if image_info %}
+                {% for description, image_path in image_info %}
+                    <div class="image-container">
+                        <img src="{{ url_for('images', path=image_path) }}" alt="Image">
+                        <p>{{ description }}</p>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+       $(document).ready(function () {
+    $("#textSearchForm").submit(function (event) {
+        event.preventDefault();
+        let textQuery = $("#textInput").val();
+        let numImages = parseInt($("#numImages").val(), 10);  // Ensure `n` is an integer
+
+        if (!textQuery) {
+            alert("Please enter text!");
+            return;
+        }
+
+        $.ajax({
+            url: "/search_text",
+            type: "POST",
+            data: { text: textQuery, n: numImages },  // Ensure `n` is sent correctly
+            success: function (response) {
+                $("#results").html($(response).find("#results").html());
+            },
+            error: function () {
+                alert("Error processing request.");
+            }
+        });
+    });
+
+    $("#imageSearchForm").submit(function (event) {
+        event.preventDefault();
+        let formData = new FormData();
+        let imageFile = $("#imageInput")[0].files[0];
+        let numImages = parseInt($("#numImages").val(), 10);  // Ensure `n` is an integer
+
+        if (!imageFile) {
+            alert("Please select an image!");
+            return;
+        }
+
+        formData.append("image", imageFile);
+        formData.append("n", numImages);  // Send `n` correctly
+
+        $.ajax({
+            url: "/search_image",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                $("#results").html($(response).find("#results").html());
+            },
+            error: function () {
+                alert("Error processing request.");
+            }
+        });
+    });
+});
+
+    </script>
+</body>
+</html>
+{% endblock %}

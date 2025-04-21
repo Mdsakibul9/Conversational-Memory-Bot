@@ -1,0 +1,479 @@
+
+<style>
+    .container {
+        flex: 1;
+        display: flex;
+        width: 95%;
+        max-width: 1400px;
+        margin: 20px auto;
+        background: #f7f7f7;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        height: calc(100vh - 80px);
+    }
+
+    .image-section {
+        flex: 1.7;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        background: #fff;
+    }
+
+    .gallery {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        display: flex;               
+        justify-content: center;      
+        align-items: center;         
+    }
+
+    .gallery-image {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+        border-radius: 8px;
+        display: none;
+        cursor: pointer;
+    }
+
+    .gallery-image.active {
+        display: block;
+    }
+
+    .info-section {
+        flex: 1;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: #f2f2f2;
+        border-radius: 12px;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 15px;
+        gap: 10px;
+    }
+    .tag {
+        background: #e6f7ff;
+        color: #005073;
+        border: 1px solid #99d6ff;
+        padding: 12px 18px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    .nav-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        gap: 10px;
+    }
+    .nav-buttons button {
+        background: #555;
+        color: white;
+        border: none;
+        padding: 12px 18px;
+        cursor: pointer;
+        border-radius: 6px;
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+    .nav-buttons button:hover {
+        background: #777;
+    }
+    .edit-btn {
+        background: #007bff;
+    }
+    .edit-btn:hover {
+        background: #0056b3;
+    }
+    .delete-btn {
+        background: #dc3545;
+    }
+    .delete-btn:hover {
+        background: #b02a37;
+    }
+    .date-display {
+        margin-top: 15px;
+        font-size: 16px;
+        color: #333;
+        text-align: center;
+    }
+    .back-btn {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 32px;
+        height: 32px;
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 18px;
+        line-height: 32px;
+        text-align: center;
+        cursor: pointer;
+        z-index: 1001;
+    }
+    .back-btn:hover {
+        background: #5a6268;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    .modal-image-container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-width: 90vw;
+        max-height: 90vh;
+    }
+    .modal-image-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+    .modal-image {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+        border-radius: 8px;
+        transition: transform 0.3s ease;
+    }
+    .close-btn {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 24px;
+        height: 24px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 16px;
+        line-height: 24px;
+        text-align: center;
+        cursor: pointer;
+        z-index: 1002;
+        transition: transform 0.3s ease;
+    }
+    .close-btn:hover {
+        background: #b02a37;
+    }
+    .zoom-controls {
+        position: relative;
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+        z-index: 1001;
+    }
+    .zoom-controls button {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+        border-radius: 6px;
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+    .zoom-controls button:hover {
+        background: #5a6268;
+    }
+
+    .edit-form {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 8px;
+        width: 300px;
+        z-index: 1001;
+    }
+    .edit-form input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .edit-form-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .edit-delete-group {
+        display: flex;
+        gap: 10px; /* Reduced gap specifically between Edit and Delete */
+    }
+</style>
+
+<button class="back-btn" onclick="window.location.href='/gallery'">←</button>
+<div class="container">
+    <div class="image-section">
+        <div class="gallery">
+            {% for id, description, image_path, tags, date in data %}
+            <img class="gallery-image" 
+                 src="{{ url_for('images', path=image_path) }}" 
+                 alt="{{ description }}" 
+                 data-id="{{ id }}"
+                 data-description="{{ description }}" 
+                 data-tags='{{ tags | tojson }}'
+                 data-date="{{ date }}">
+            {% endfor %}
+        </div>
+    </div>
+    <div class="info-section">
+        <h2 id="image-title"></h2>
+        <div class="tags" id="tags-container"></div>
+        <div class="date-display" id="image-date"></div>
+        <div class="nav-buttons">
+            <button onclick="prevImage()">← Previous</button>
+            <div class="edit-delete-group">
+                <button class="edit-btn" onclick="editImage()">Edit</button>
+                <button class="delete-btn" onclick="deleteImage()">Delete</button>
+            </div>
+            <button onclick="nextImage()">Next →</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for zoomed image -->
+<div class="modal" id="modal">
+    <div class="modal-image-container">
+        <div class="modal-image-wrapper">
+            <img class="modal-image" id="modalImage" src="" alt="">
+            <button class="close-btn" id="closeModal">×</button>
+        </div>
+        <div class="zoom-controls">
+            <button onclick="zoomOut()">-</button>
+            <button onclick="zoomIn()">+</button>
+        </div>
+    </div>
+</div>
+
+<div class="edit-form" id="editForm">
+    <input type="text" id="editDescription" placeholder="Description">
+    <input type="text" id="editTags" placeholder="Tags (comma separated)">
+    <input type="date" id="editDate">
+    <div class="edit-form-buttons">
+        <button class="edit-btn" onclick="saveChanges()">Save</button>
+        <button class="delete-btn" onclick="cancelEdit()">Cancel</button>
+    </div>
+</div>
+
+<script>
+    let currentIndex = 0;
+    let currentScale = 1;
+    const images = document.querySelectorAll(".gallery-image");
+    const modal = document.getElementById("modal");
+    const modalImage = document.getElementById("modalImage");
+    const modalContainer = document.querySelector(".modal-image-container");
+    const closeModalBtn = document.getElementById("closeModal");
+
+    function updateImage(index) {
+        images.forEach(img => img.classList.remove('active'));
+        images[index].classList.add('active');
+
+        document.getElementById('image-title').textContent = 
+            images[index].dataset.description || 'No description available';
+        const tags = JSON.parse(images[index].dataset.tags || '[]');
+        document.getElementById('tags-container').innerHTML = 
+            tags.map(t => `<span class="tag">${t}</span>`).join('');
+        document.getElementById('image-date').textContent = 
+            images[index].dataset.date || 'No date available';
+    }
+
+    function nextImage() {
+        if (currentIndex < images.length - 1) {
+            currentIndex++;
+            updateImage(currentIndex);
+            modal.style.display = 'none';
+        }
+    }
+
+    function prevImage() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateImage(currentIndex);
+            modal.style.display = 'none';
+        }
+    }
+
+    function zoomIn() {
+        currentScale *= 1.2;
+        modalImage.style.transform = `scale(${currentScale})`;
+        closeModalBtn.style.transform = `scale(${1 / currentScale})`;
+    }
+
+    function zoomOut() {
+        currentScale = Math.max(0.5, currentScale / 1.2);
+        modalImage.style.transform = `scale(${currentScale})`;
+        closeModalBtn.style.transform = `scale(${1 / currentScale})`;
+    }
+
+    function editImage() {
+        const activeImg = document.querySelector('.gallery-image.active');
+        if (activeImg) {
+            document.getElementById('editDescription').value = activeImg.dataset.description;
+            const tags = JSON.parse(activeImg.dataset.tags || '[]');
+            document.getElementById('editTags').value = tags.join(', ');
+            document.getElementById('editDate').value = activeImg.dataset.date;
+            document.getElementById('editForm').style.display = 'block';
+        }
+    }
+
+    function deleteImage() {
+        const activeImg = document.querySelector('.gallery-image.active');
+        if (activeImg && confirm('Are you sure you want to delete this image?')) {
+            const id = activeImg.dataset.id;
+            fetch(`/delete-image/${id}`, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Failed to delete image.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    }
+
+    function saveChanges() {
+        const activeImg = document.querySelector('.gallery-image.active');
+        if (activeImg) {
+            const id = activeImg.dataset.id;
+            const updatedData = {
+                description: document.getElementById('editDescription').value,
+                tags: document.getElementById('editTags').value
+                    .split(',')
+                    .map(tag => tag.trim())
+                    .filter(tag => tag !== ''),
+                date: document.getElementById('editDate').value
+            };
+            fetch(`/update-image/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    activeImg.dataset.description = updatedData.description;
+                    activeImg.dataset.tags = JSON.stringify(updatedData.tags);
+                    activeImg.dataset.date = updatedData.date;
+                    updateImage(currentIndex);
+                    document.getElementById('editForm').style.display = 'none';
+                } else {
+                    alert('Failed to update image.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    }
+
+    function cancelEdit() {
+        document.getElementById('editForm').style.display = 'none';
+    }
+
+    // Click to open modal
+    images.forEach(img => {
+        img.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (img.classList.contains('active')) {
+                currentScale = 1;
+                modalImage.src = img.src;
+                modalImage.style.transform = 'scale(1)';
+                closeModalBtn.style.transform = 'scale(1)';
+                modal.style.display = 'flex';
+            }
+        });
+    });
+
+    // Close modal via cross button
+    closeModalBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        modal.style.display = 'none';
+        currentScale = 1;
+    });
+
+    // Close modal on click outside
+    document.addEventListener('click', (e) => {
+        if (modal.style.display === 'flex' && e.target === modal) {
+            modal.style.display = 'none';
+            currentScale = 1;
+        }
+    });
+
+    // Prevent clicks inside modal container from closing it
+    modalContainer.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
+    // Initial load with selected image
+    const selectedImageId = "{{ selected_image_id }}";
+    if (images.length > 0) {
+        if (selectedImageId) {
+            currentIndex = Array.from(images).findIndex(img => img.dataset.id === selectedImageId);
+            if (currentIndex === -1) currentIndex = 0; // Fallback to first image if not found
+        }
+        updateImage(currentIndex);
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') nextImage();
+        if (e.key === 'ArrowLeft') prevImage();
+    });
+
+    // Mouse wheel navigation (outside modal)
+    document.querySelector('.gallery').addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (modal.style.display !== 'flex') {
+            if (e.deltaY > 0 && currentIndex < images.length - 1) {
+                nextImage();
+            } else if (e.deltaY < 0 && currentIndex > 0) {
+                prevImage();
+            }
+        }
+    });
+
+    // Mouse wheel zoom (inside modal)
+    modalImage.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+            currentScale *= 1.1;
+            modalImage.style.transform = `scale(${currentScale})`;
+            closeModalBtn.style.transform = `scale(${1 / currentScale})`;
+        } else {
+            currentScale = Math.max(0.5, currentScale / 1.1);
+            modalImage.style.transform = `scale(${currentScale})`;
+            closeModalBtn.style.transform = `scale(${1 / currentScale})`;
+        }
+    });
+</script>

@@ -1,0 +1,151 @@
+{% extends "navbar.html" %}
+{% block title %}Multimodal Search{% endblock %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chatbot Interface</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f6f6f6;
+      margin: 0;
+      padding: 0;
+    }
+    .chat-container {
+      max-width: 600px;
+      margin: 50px auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      height: 80vh;
+    }
+    .chat-box {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      border-bottom: 1px solid #ddd;
+    }
+    .input-area {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      gap: 10px;
+    }
+    .input-area input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .input-area input[type="file"] {
+      padding: 10px;
+    }
+    .input-area button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .input-area button:hover {
+      background-color: #0056b3;
+    }
+    .message {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 4px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    .message.user {
+      background-color: #dcf8c6;
+      align-self: flex-end;
+      text-align: right;
+    }
+    .message.bot {
+      background-color: #ececec;
+      align-self: flex-start;
+      text-align: left;
+    }
+    .message img {
+      max-width: 200px;
+      display: block;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-box" id="chat-box">
+      <!-- Chat messages will appear here -->
+    </div>
+    <div class="input-area">
+      <input type="text" id="user-input" placeholder="Type your query or prompt..." />
+      <input type="file" id="image-upload" accept="image/*" />
+      <button id="send-button">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    const imageUpload = document.getElementById('image-upload');
+    const sendButton = document.getElementById('send-button');
+
+    sendButton.addEventListener('click', () => {
+      const text = userInput.value.trim();
+      const file = imageUpload.files[0];
+
+      // Only proceed if there's either text or an image
+      if (text || file) {
+        const userMessage = document.createElement('div');
+        userMessage.classList.add('message', 'user');
+
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            userMessage.appendChild(img);
+
+            // If there's accompanying text, append it
+            if (text) {
+              const textNode = document.createTextNode(text);
+              userMessage.appendChild(textNode);
+            }
+            chatBox.appendChild(userMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          userMessage.textContent = text;
+          chatBox.appendChild(userMessage);
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Reset input fields
+        userInput.value = '';
+        imageUpload.value = '';
+
+        // Simulated bot response – replace this with your chatbot API call.
+        setTimeout(() => {
+          const botMessage = document.createElement('div');
+          botMessage.classList.add('message', 'bot');
+          botMessage.textContent = "Bot reply: I received your message.";
+          chatBox.appendChild(botMessage);
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }, 1000);
+      }
+    });
+  </script>
+</body>
+</html>
+{% endblock %}

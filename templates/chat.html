@@ -1,0 +1,495 @@
+{% extends "navbar.html" %}
+{% block title %}Chatbot{% endblock %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversational Memory Bot</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .chat-container {
+            max-width: 900px;
+            margin: 20px auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-window {
+            width: 100%;
+            max-width: 900px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            min-height: 400px;
+        }
+        .message {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .message.user {
+            background-color: #e6f3ff;
+            margin-left: 20%;
+        }
+        .message.bot {
+            background-color: #f0f0f0;
+            margin-right: 20%;
+        }
+        .image-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .image-row img {
+            max-width: 150px;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .image-row img:hover {
+            transform: scale(1.05);
+        }
+        .input-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        form#chat-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        textarea#query-text {
+            flex-grow: 1;
+            min-height: 40px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-size: 16px;
+        }
+        .attach-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            color: #007bff;
+            position: relative;
+        }
+        .attach-btn:hover {
+            color: #0056b3;
+        }
+        .attach-btn:hover::after {
+            content: 'Attach Image';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .send-btn {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .send-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .image-container {
+            position: relative;
+        }
+        .preview-image {
+            max-width: 100px;
+            height: auto;
+            border-radius: 4px;
+        }
+        .remove-image {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+        }
+        .clear-btn {
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            align-self: center; /* Centers the button horizontally */
+        }
+        .loading {
+            text-align: center;
+            color: #888;
+        }
+        .dots::after {
+            content: '...';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+        .edit-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #007bff;
+        }
+        .edit-btn:hover {
+            color: #0056b3;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            overflow: auto;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            margin: auto;
+            animation: zoom 0.3s;
+            border-radius: 4px;
+            background-color: #fff;
+            padding: 8px;
+        }
+        .modal-image {
+            display: block;
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 4px;
+        }
+        .close-modal {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            background: #ff4757;
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        .close-modal:hover {
+            background: #ff6b81;
+        }
+        @keyframes zoom {
+            from {
+                transform: scale(0.1);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-window" id="chat-window">
+            {% if conversation %}
+                {% for message in conversation %}
+                    <div class="message {{ message.role }}" data-id="{{ message.id }}">
+                        <p>{{ message.text }}</p>
+                        {% if message.images %}
+                            <div class="image-row">
+                                {% for img_base64 in message.images %}
+                                    <img src="data:image/jpeg;base64,{{ img_base64 }}" alt="{{ message.role }} Image" onclick="openImageModal(this.src)">
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if message.role == "user" %}
+                            <span class="edit-btn" onclick="editQuery('{{ message.id }}')">✎</span>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #888;">Start a conversation below!</p>
+            {% endif %}
+        </div>
+        <div class="input-container">
+            <form id="chat-form" method="post" enctype="multipart/form-data">
+                <input type="file" name="image" id="image-input" accept="image/*" multiple onchange="previewImages(event)" style="display: none;">
+                <button type="button" class="attach-btn" onclick="document.getElementById('image-input').click()">📎</button>
+                <textarea name="query_text" id="query-text" placeholder="Type your message here..." oninput="checkInput()"></textarea>
+                <button type="submit" class="send-btn" id="send-btn" disabled>Send</button>
+            </form>
+            <div class="image-preview" id="image-preview"></div>
+            <button class="clear-btn" onclick="clearChat()">Clear Chat</button>
+        </div>
+    </div>
+    
+    <!-- Image Modal -->
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeImageModal()">×</button>
+            <img class="modal-image" id="modalImage" src="" alt="Enlarged image">
+        </div>
+    </div>
+
+    <script>
+        // Scroll to bottom on load
+        window.onload = function() {
+            const chatWindow = document.getElementById('chat-window');
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        };
+
+        // Preview uploaded images with remove option
+        function previewImages(event) {
+            const preview = document.getElementById('image-preview');
+            preview.innerHTML = '';
+            const files = event.target.files;
+            for (let file of files) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'image-container';
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'preview-image';
+                    const removeBtn = document.createElement('button');
+                    removeBtn.innerText = '×';
+                    removeBtn.className = 'remove-image';
+                    removeBtn.onclick = function() {
+                        imgContainer.remove();
+                        const dt = new DataTransfer();
+                        for (let f of files) {
+                            if (f !== file) dt.items.add(f);
+                        }
+                        event.target.files = dt.files;
+                        checkInput();
+                    };
+                    imgContainer.appendChild(img);
+                    imgContainer.appendChild(removeBtn);
+                    preview.appendChild(imgContainer);
+                };
+                reader.readAsDataURL(file);
+            }
+            checkInput();
+        }
+
+        // Enable/disable send button based on input
+        function checkInput() {
+            const text = document.getElementById('query-text').value.trim();
+            const files = document.getElementById('image-input').files;
+            const sendBtn = document.getElementById('send-btn');
+            sendBtn.disabled = !(text.length > 0 || files.length > 0);
+        }
+
+        // Edit previous query
+        function editQuery(messageId) {
+            const messageDiv = document.querySelector(`.message[data-id="${messageId}"]`);
+            const text = messageDiv.querySelector('p').textContent;
+            document.getElementById('query-text').value = text;
+            document.getElementById('image-input').value = '';
+            document.getElementById('image-preview').innerHTML = '<p>Previously uploaded images cannot be reattached. Upload new ones if needed.</p>';
+            checkInput();
+        }
+
+        // Handle form submission with AJAX
+        document.getElementById('chat-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // Disable send button
+            const sendButton = document.getElementById('send-btn');
+            sendButton.disabled = true;
+            
+            const chatWindow = document.getElementById('chat-window');
+            const userText = document.getElementById('query-text').value.trim();
+            const tempUserId = 'temp-' + Date.now();
+            
+            // Show user message with images immediately
+            let userHtml = `<div class="message user" data-id="${tempUserId}"><p>${userText}</p>`;
+            
+            // Add image previews to the message
+            const imageInput = document.getElementById('image-input');
+            if (imageInput.files.length > 0) {
+                userHtml += '<div class="image-row">';
+                for (let i = 0; i < imageInput.files.length; i++) {
+                    const file = imageInput.files[i];
+                    const imgUrl = URL.createObjectURL(file);
+                    userHtml += `<img src="${imgUrl}" alt="Query Image" onclick="openImageModal('${imgUrl}')">`;
+                }
+                userHtml += '</div>';
+            }
+            
+            userHtml += `<span class="edit-btn" onclick="editQuery('${tempUserId}')">✎</span></div>`;
+            chatWindow.insertAdjacentHTML('beforeend', userHtml);
+            
+            // Add loading indicator
+            const loadingHtml = '<div class="message bot loading" id="loading">Generating response<span class="dots"></span></div>';
+            chatWindow.insertAdjacentHTML('beforeend', loadingHtml);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            
+            const formData = new FormData(this);
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('Invalid query');
+                const data = await response.json();
+                
+                // Update the temporary user message ID with the server-generated one
+                const userMessage = document.querySelector(`.message[data-id="${tempUserId}"]`);
+                userMessage.setAttribute('data-id', data.user_message_id);
+                
+                // Remove loading indicator
+                document.getElementById('loading').remove();
+                
+                // Process bot HTML to add onclick handler for images
+                let botHtml = data.bot_html;
+                botHtml = botHtml.replace(/<img src="([^"]+)" alt="Response Image">/g, 
+                    '<img src="$1" alt="Response Image" onclick="openImageModal(\'$1\')">');
+                
+                // Append bot message
+                chatWindow.insertAdjacentHTML('beforeend', botHtml);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+                
+                // Reset form and preview
+                this.reset();
+                document.getElementById('image-preview').innerHTML = '';
+                
+                // Re-enable button
+                sendButton.disabled = false;
+                checkInput();
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').remove();
+                chatWindow.insertAdjacentHTML('beforeend', '<div class="error">Error processing query. Please try again.</div>');
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+                
+                // Re-enable button on error
+                sendButton.disabled = false;
+            }
+        });
+
+        // Clear chat history
+        async function clearChat() {
+            const response = await fetch('/clear', { method: 'POST' });
+            const chatWindow = document.getElementById('chat-window');
+            chatWindow.innerHTML = await response.text();
+            document.getElementById('chat-form').reset();
+            document.getElementById('image-preview').innerHTML = '';
+            checkInput();
+        }
+        
+        // Image modal functions
+        function openImageModal(imgSrc) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.classList.add('active');
+            modalImg.src = imgSrc;
+            
+            // Prevent scrolling of background when modal is open
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.remove('active');
+            
+            // Re-enable scrolling
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Close modal when clicking outside the image
+        document.getElementById('imageModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeImageModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && document.getElementById('imageModal').classList.contains('active')) {
+                closeImageModal();
+            }
+        });
+    </script>
+</body>
+</html>
+{% endblock %}

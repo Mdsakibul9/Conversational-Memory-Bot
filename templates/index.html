@@ -1,0 +1,454 @@
+{% extends "navbar.html" %}
+{% block title %}Conversational Memory Bot{% endblock %}
+{% block extra_css %}
+<!-- Add Font Awesome CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+    /* Full-page layout with lighter background */
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Poppins', sans-serif;
+        color: #505a68;
+        overflow-x: hidden;
+        background: #f7f7f7;  /* Light base background */
+        background: -webkit-linear-gradient(to right, #e6f3ff, #f0f0f0, #fff);  /* Chrome 10-25, Safari 5.1-6 */
+        background: linear-gradient(to right, #e6f3ff, #f0f0f0, #fff); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    }
+
+    .content-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 60px); /* Adjust for navbar */
+        padding: 40px 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Animated background elements */
+    .animated-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 0;
+    }
+
+    /* Floating photo frames */
+    .photo-frame {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 10px;
+        border: 2px solid rgba(230, 243, 255, 0.8);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        animation: float 20s infinite ease-in-out;
+        opacity: 0.9;
+    }
+
+    .frame1 {
+        width: 80px;
+        height: 100px;
+        left: 5%;
+        top: 15%;
+        transform: rotate(-5deg);
+        animation-delay: 0s;
+    }
+
+    .frame2 {
+        width: 120px;
+        height: 90px;
+        right: 10%;
+        top: 20%;
+        transform: rotate(8deg);
+        animation-delay: 3s;
+    }
+
+    .frame3 {
+        width: 100px;
+        height: 130px;
+        left: 15%;
+        bottom: 15%;
+        transform: rotate(12deg);
+        animation-delay: 6s;
+    }
+
+    .frame4 {
+        width: 110px;
+        height: 80px;
+        right: 15%;
+        bottom: 25%;
+        transform: rotate(-10deg);
+        animation-delay: 9s;
+    }
+
+    /* Chat bubbles animation */
+    .chat-bubble {
+        position: absolute;
+        background: rgba(230, 243, 255, 0.7);
+        border-radius: 25px;
+        padding: 8px 15px;
+        animation: rise 15s infinite linear;
+        opacity: 0;
+    }
+
+    .bubble1 {
+        left: 30%;
+        bottom: -50px;
+        width: 90px;
+        height: 35px;
+        animation-delay: 2s;
+    }
+
+    .bubble2 {
+        left: 70%;
+        bottom: -50px;
+        width: 120px;
+        height: 40px;
+        animation-delay: 8s;
+    }
+
+    .bubble3 {
+        left: 20%;
+        bottom: -50px;
+        width: 80px;
+        height: 30px;
+        animation-delay: 15s;
+    }
+
+    .bubble4 {
+        left: 60%;
+        bottom: -50px;
+        width: 100px;
+        height: 35px;
+        animation-delay: 22s;
+    }
+
+    /* Glowing dots (representing AI/memory connections) */
+    .glow-dots {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    .dot {
+        position: absolute;
+        background: #2d3436;
+        border-radius: 50%;
+        filter: blur(3px);
+        opacity: 0.2;
+        animation: pulse 4s infinite ease-in-out;
+    }
+
+    /* Lines connecting dots (neural network effect) */
+    .connecting-lines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+    .line {
+        position: absolute;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(45,52,54,0) 0%, rgba(45,52,54,0.2) 50%, rgba(45,52,54,0) 100%);
+        transform-origin: 0 0;
+        animation: expandLine 8s infinite ease-in-out;
+        opacity: 0;
+    }
+
+    /* Hero section with refined typography */
+    .hero {
+        max-width: 900px;
+        margin-bottom: 60px;
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        animation: fadeIn 1.5s ease-out;
+    }
+
+    .hero h1 {
+        font-size: 3.2em;
+        margin: 0;
+        font-weight: 700;
+        background: linear-gradient(to right, #2d3436, #434343);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: 1px;
+        text-shadow: 0 0 20px rgba(45, 52, 54, 0.1);
+    }
+
+    .hero p {
+        font-size: 1.4em;
+        margin: 20px 0 0;
+        color: #505a68;
+        line-height: 1.6;
+        max-width: 700px;
+    }
+
+    /* Navigation icons with card-like design */
+    .nav-icons {
+        display: flex;
+        justify-content: center;
+        gap: 50px;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+    }
+
+    .icon-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 25px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05), 
+                    inset 0 0 2px rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(230, 243, 255, 0.8);
+        color: #2d3436;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        width: 130px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .icon-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(230, 243, 255, 0.6), transparent);
+        transition: 0.5s;
+    }
+
+    .icon-card:hover::before {
+        left: 100%;
+    }
+
+    .icon-card:hover {
+        transform: translateY(-15px) scale(1.05);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1), 
+                    inset 0 0 5px rgba(230, 243, 255, 0.9);
+        background: #fff;
+    }
+
+    .icon-card i {
+        font-size: 3.2rem;
+        margin-bottom: 18px;
+        transition: transform 0.5s ease;
+        background: linear-gradient(to bottom, #2d3436, #434343);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .icon-card:hover i {
+        transform: scale(1.2) rotate(5deg);
+    }
+
+    .icon-card span {
+        font-size: 1.2em;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        color: #505a68;
+    }
+
+    .icon-card span::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(to right, #2d3436, #434343);
+        transition: 0.5s ease;
+        transform: translateX(-50%);
+    }
+
+    .icon-card:hover span::after {
+        width: 80%;
+    }
+    .navbar-nav .nav-link,
+    .navbar-nav .nav-link.active,
+    .navbar-nav .nav-link:hover {
+        color: inherit !important;  /* Use the same color as other nav items */
+        font-weight: inherit !important;  /* Keep consistent font weight */
+        text-decoration: none !important;  /* Prevent any underlines */
+    }
+
+    /* If you want to show active state, use a subtle indicator instead */
+    .navbar-nav .nav-link.active {
+        border-bottom: 2px solid currentColor;  /* Optional: shows which page is active */
+    }
+
+    /* Animations */
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(var(--rotation, 0deg)); }
+        50% { transform: translateY(-30px) rotate(var(--rotation, 0deg)); }
+    }
+
+    @keyframes rise {
+        0% { transform: translateY(0); opacity: 0; }
+        10% { opacity: 0.7; }
+        90% { opacity: 0.7; }
+        100% { transform: translateY(-500px); opacity: 0; }
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.2; }
+        50% { transform: scale(1.5); opacity: 0.4; }
+    }
+
+    @keyframes expandLine {
+        0% { transform: scaleX(0); opacity: 0; }
+        20% { opacity: 0.5; }
+        80% { opacity: 0.5; }
+        100% { transform: scaleX(1); opacity: 0; }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .hero h1 {
+            font-size: 2.5em;
+        }
+        .hero p {
+            font-size: 1.2em;
+        }
+        .nav-icons {
+            gap: 30px;
+        }
+        .icon-card {
+            width: 110px;
+            padding: 20px;
+        }
+        .icon-card i {
+            font-size: 2.8rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero h1 {
+            font-size: 2em;
+        }
+        .hero p {
+            font-size: 1em;
+        }
+        .nav-icons {
+            gap: 20px;
+        }
+        .icon-card {
+            width: 90px;
+            padding: 15px;
+        }
+        .icon-card i {
+            font-size: 2.2rem;
+        }
+        .icon-card span {
+            font-size: 1em;
+        }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="content-wrapper">
+    <!-- Enhanced animated background -->
+    <div class="animated-background">
+        <!-- Floating photo frames -->
+        <div class="photo-frame frame1"></div>
+        <div class="photo-frame frame2"></div>
+        <div class="photo-frame frame3"></div>
+        <div class="photo-frame frame4"></div>
+        
+        <!-- Chat bubbles -->
+        <div class="chat-bubble bubble1"></div>
+        <div class="chat-bubble bubble2"></div>
+        <div class="chat-bubble bubble3"></div>
+        <div class="chat-bubble bubble4"></div>
+        
+        <!-- Glowing dots -->
+        <div class="glow-dots">
+        </div>
+        
+        
+        <div class="connecting-lines">
+        </div>
+    </div>
+
+    <!-- Hero section -->
+    <div class="hero">
+        <h1>Conversational Memory Bot</h1>
+        <p>📸✨ Discover Your Memories Like Never Before! ✨📸</p>
+        <p> Welcome to AI Photo Bot, your smart gallery assistant! Effortlessly search, organize, and relive your favorite moments with intelligent image search and storytelling. 🖼️🔍Unlock your photo memories with an AI that listens, searches, and remembers—bringing your moments to life through natural conversation.</p>
+    </div>
+
+    <!-- Navigation icons with Font Awesome icons (search removed) -->
+    <div class="nav-icons">
+        <a href="/gallery" class="icon-card">
+            <i class="fas fa-images"></i>
+            <span>Gallery</span>
+        </a>
+        <a href="/upload" class="icon-card">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span>Upload</span>
+        </a>
+        <a href="/chat" class="icon-card">
+            <i class="fas fa-comments"></i>
+            <span>Chat</span>
+        </a>
+    </div>
+</div>
+
+<!-- Script to create dynamic dots and connections for additional visual effect -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Random movement for floating frames
+        const frames = document.querySelectorAll('.photo-frame');
+        frames.forEach(frame => {
+            setInterval(() => {
+                const randomX = Math.random() * 10 - 5;
+                const randomY = Math.random() * 10 - 5;
+                const currentTransform = window.getComputedStyle(frame).getPropertyValue('transform');
+                frame.style.transform = `${currentTransform} translate(${randomX}px, ${randomY}px)`;
+            }, 3000);
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+                // Create glowing dots
+                const glowDots = document.querySelector('.glow-dots');
+                for (let i = 0; i < 20; i++) {
+                    const width = 4 + (i % 4);
+                    const left = (i * 27) % 100;
+                    const top = (i * 13) % 100;
+                    const delay = (i * 0.5) % 4;
+                    
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    dot.style.cssText = `width:${width}px;height:${width}px;left:${left}%;top:${top}%;animation-delay:${delay}s`;
+                    glowDots.appendChild(dot);
+                }
+            });
+</script>
+{% endblock %}
