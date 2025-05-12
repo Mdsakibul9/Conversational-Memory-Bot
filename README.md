@@ -144,7 +144,7 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ## 👥 Authors
 - MD Sakib Ul Islam
-- Contact: sakib.islam@bjitacademy.com
+- Contact: ulsakib9@gmail.com
 
 
 
